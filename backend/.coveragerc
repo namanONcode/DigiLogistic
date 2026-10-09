@@ -1,0 +1,6 @@
+[run]
+omit =
+    */migrations/*
+    */calibrate.py
+    manage.py
+    config/*
