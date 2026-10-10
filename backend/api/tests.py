@@ -7,6 +7,11 @@ from api.services import geocode, get_route
 from datetime import datetime, timedelta
 
 
+@pytest.fixture(autouse=True)
+def clear_cache():
+    geocode.cache_clear()
+    get_route.cache_clear()
+
 class TestHOSEngine:
     def test_basic_drive(self):
         engine = HOSEngine(current_cycle_used=10.0)
@@ -106,7 +111,7 @@ class TestServices:
         mock_resp.json.return_value = {"code": "Ok", "routes": [{"distance": 1000}]}
         mock_get.return_value = mock_resp
 
-        route = get_route([(-74, 40), (-75, 41)])
+        route = get_route(((-74, 40), (-75, 41)))
         assert route["distance"] == 1000
 
     @patch("api.services.requests.get")
@@ -115,7 +120,7 @@ class TestServices:
         mock_resp.status_code = 400
         mock_get.return_value = mock_resp
 
-        route = get_route([(-74, 40), (-75, 41)])
+        route = get_route(((-74, 40), (-75, 41)))
         assert route is None
 
     @patch("api.services.requests.get")
@@ -124,7 +129,7 @@ class TestServices:
         mock_resp.status_code = 200
         mock_resp.json.return_value = {"code": "Ok", "routes": []}
         mock_get.return_value = mock_resp
-        route = get_route([(-74, 40), (-75, 41)])
+        route = get_route(((-74, 40), (-75, 41)))
         assert route is None
 
 

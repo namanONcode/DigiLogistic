@@ -53,7 +53,7 @@ function App() {
 
   return (
     <div className="bg-surface font-body-md text-on-surface min-h-screen">
-      <header className="fixed top-0 left-0 w-full h-16 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div className="w-full h-full px-gutter-desktop flex items-center justify-between gap-space-lg"><div className="flex items-center gap-space-lg"><div className="flex items-center gap-space-sm"><div className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-sm"><span className="material-symbols-outlined text-[20px]">local_shipping</span></div><div className="flex flex-col"><span className="font-headline-sm text-headline-sm tracking-tight text-on-surface font-bold leading-none">DigiLogistic</span><span className="font-code-data-sm text-code-data-sm text-on-surface-variant tracking-wider uppercase leading-none mt-1">ELD Enterprise</span></div></div></div><div className="flex items-center gap-space-md"><div className="flex items-center gap-space-sm pl-1"><div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span className="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header>
+      <header className="fixed top-0 left-0 w-full h-16 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div className="w-full h-full px-gutter-desktop flex items-center justify-between gap-space-lg"><div className="flex items-center gap-space-lg"><div className="flex items-center gap-space-sm"><div className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-sm"><span className="material-symbols-outlined text-[20px]">local_shipping</span></div><div className="flex flex-col"><span className="font-headline-sm text-headline-sm tracking-tight text-on-surface font-bold leading-none">DigiLogistic</span><span className="font-code-data-sm text-code-data-sm text-on-surface-variant tracking-wider uppercase leading-none mt-1">ELD Enterprise</span></div></div></div></div></header>
       <main className="w-full min-h-screen pt-16 px-gutter-desktop pb-space-xl bg-surface"><div className="flex flex-col w-full gap-space-lg pb-space-xl">
 {/*  Status & Quick Broadcast Bar  */}
 <div className="w-full flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md p-space-md bg-surface-container-lowest rounded-xl shadow-sm">
@@ -98,7 +98,20 @@ function App() {
 </div>
 <div className="relative flex items-center">
 <input className="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-secondary/40 shadow-sm transition-all" id="inputCurrent" type="text" placeholder="e.g. New York, NY" value={current} onChange={(e) => setCurrent(e.target.value)} required />
-<button onClick={() => setCurrent('41.8781° N, 87.6298° W')} className="absolute right-2.5 text-on-surface-variant hover:text-secondary" type="button">
+<button onClick={() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCurrent(`${position.coords.latitude}, ${position.coords.longitude}`);
+      },
+      () => {
+        alert('Unable to retrieve your location');
+      }
+    );
+  } else {
+    alert('Geolocation is not supported by your browser');
+  }
+}} className="absolute right-2.5 text-on-surface-variant hover:text-secondary" type="button" title="Use my current location">
 <span className="material-symbols-outlined text-[18px]">near_me</span>
 </button>
 </div>
@@ -130,7 +143,7 @@ function App() {
 </div>
 </div>
 <div className="h-px bg-surface-container-high my-1"></div>
-{/*  Cycle Used & Driver Roster  */}
+{/*  Cycle Used  */}
 <div className="flex flex-col gap-1.5">
 <label className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
 <span className="material-symbols-outlined text-[14px]">schedule</span>
@@ -242,7 +255,7 @@ function App() {
 </div>
 </div>
 {/*  Simulated Interactive Map Canvas  */}
-<div className="relative w-full h-80 bg-surface-container-high overflow-hidden" data-location="United States Interstate 80 corridor Chicago to Salt Lake City" >
+<div className="relative w-full h-80 bg-surface-container-high overflow-hidden">
 {/*  Stylized SVG Map Graphics Overlay  */}
 <Map routeGeojson={routeData} points={points} />
 {/*  Bottom floating legend  */}

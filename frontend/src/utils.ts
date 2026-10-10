@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 export const downloadPDFBundle = (images: string[]) => {
   if (!images || images.length === 0) {
