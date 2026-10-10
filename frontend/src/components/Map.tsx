@@ -53,7 +53,7 @@ const Map: React.FC<MapProps> = ({ routeGeojson, points }) => {
         <ChangeView center={center} zoom={points ? 5 : 4} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
         {routeCoordinates.length > 0 && (
