@@ -34,7 +34,7 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post('http://localhost:8000/api/calculate/', {
+      const response = await axios.post('/api/calculate/', {
         current,
         pickup,
         dropoff,
