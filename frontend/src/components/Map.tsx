@@ -3,16 +3,25 @@ import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Fix Leaflet's default icon issue with React
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+// Create custom icons for different points
+const createIcon = (color: string, iconStr: string) => {
+  const html = `
+    <div style="background-color: ${color}; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white;">
+      <span class="material-symbols-outlined" style="font-size: 18px;">${iconStr}</span>
+    </div>
+  `;
+  return L.divIcon({
+    html,
+    className: 'custom-leaflet-icon',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
+  });
+};
 
-let DefaultIcon = L.icon({
-  iconUrl,
-  shadowUrl: iconShadow,
-  iconAnchor: [12, 41]
-});
-L.Marker.prototype.options.icon = DefaultIcon;
+const currentIcon = createIcon('#0051d5', 'my_location');
+const pickupIcon = createIcon('#188ace', 'warehouse');
+const dropoffIcon = createIcon('#ba1a1a', 'location_on');
 
 interface MapProps {
   routeGeojson: any;
@@ -40,27 +49,27 @@ const Map: React.FC<MapProps> = ({ routeGeojson, points }) => {
 
   return (
     <div className="h-[500px] w-full rounded-lg overflow-hidden shadow-lg border border-gray-200">
-      <MapContainer center={center} zoom={points ? 6 : 4} style={{ height: '100%', width: '100%' }}>
-        <ChangeView center={center} zoom={points ? 6 : 4} />
+      <MapContainer center={center} zoom={points ? 5 : 4} style={{ height: '100%', width: '100%' }}>
+        <ChangeView center={center} zoom={points ? 5 : 4} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         
         {routeCoordinates.length > 0 && (
-          <Polyline positions={routeCoordinates} color="blue" weight={5} opacity={0.7} />
+          <Polyline positions={routeCoordinates} color="#0051d5" weight={5} opacity={0.8} />
         )}
 
         {points && (
           <>
-            <Marker position={points.current}>
-              <Popup>Current Location</Popup>
+            <Marker position={points.current} icon={currentIcon}>
+              <Popup><strong>Current Location</strong></Popup>
             </Marker>
-            <Marker position={points.pickup}>
-              <Popup>Pickup Location</Popup>
+            <Marker position={points.pickup} icon={pickupIcon}>
+              <Popup><strong>Pickup Location</strong></Popup>
             </Marker>
-            <Marker position={points.dropoff}>
-              <Popup>Dropoff Location</Popup>
+            <Marker position={points.dropoff} icon={dropoffIcon}>
+              <Popup><strong>Dropoff Location</strong></Popup>
             </Marker>
           </>
         )}
