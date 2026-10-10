@@ -78,21 +78,23 @@ class TestServices:
     def test_geocode_success(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = [{"lon": "-74", "lat": "40"}]
+        mock_resp.json.return_value = [{"lon": "-74", "lat": "40", "display_name": "New York"}]
         mock_get.return_value = mock_resp
 
-        lon, lat = geocode("NY")
+        lon, lat, name = geocode("NY")
         assert lon == -74.0
         assert lat == 40.0
+        assert name == "New York"
 
     @patch("api.services.requests.get")
     def test_geocode_fail(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.status_code = 404
         mock_get.return_value = mock_resp
-        lon, lat = geocode("NY")
+        lon, lat, name = geocode("NY")
         assert lon is None
         assert lat is None
+        assert name is None
 
     @patch("api.services.requests.get")
     def test_geocode_empty_json(self, mock_get):
@@ -100,9 +102,10 @@ class TestServices:
         mock_resp.status_code = 200
         mock_resp.json.return_value = []
         mock_get.return_value = mock_resp
-        lon, lat = geocode("NY")
+        lon, lat, name = geocode("NY")
         assert lon is None
         assert lat is None
+        assert name is None
 
     @patch("api.services.requests.get")
     def test_get_route(self, mock_get):
@@ -146,7 +149,7 @@ class TestRouteCalculateView:
     @patch("api.views.get_route")
     @patch("api.eld_drawer.generate_log_images")
     def test_post_success(self, mock_draw, mock_route, mock_geo):
-        mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
+        mock_geo.side_effect = [(-74, 40, "A"), (-75, 41, "B"), (-76, 42, "C")]
         mock_route.return_value = ({"distance": 160934.4, "legs": [{"distance": 80467.2}, {"distance": 80467.2}]}, None)
         mock_draw.return_value = ["image_data"]
 
@@ -158,10 +161,11 @@ class TestRouteCalculateView:
         assert "route" in resp.data
         assert "timeline" in resp.data
         assert "images" in resp.data
+        assert "resolved_names" in resp.data
 
     @patch("api.views.geocode")
     def test_post_geocode_fail(self, mock_geo):
-        mock_geo.side_effect = [(None, None), (-75, 41), (-76, 42)]
+        mock_geo.side_effect = [(None, None, None), (-75, 41, "B"), (-76, 42, "C")]
 
         resp = self.client.post(self.url, {"current": "A", "pickup": "B", "dropoff": "C"}, format="json")
 
@@ -171,7 +175,7 @@ class TestRouteCalculateView:
     @patch("api.views.geocode")
     @patch("api.views.get_route")
     def test_post_route_fail(self, mock_route, mock_geo):
-        mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
+        mock_geo.side_effect = [(-74, 40, "A"), (-75, 41, "B"), (-76, 42, "C")]
         mock_route.return_value = (None, "Custom error")
 
         resp = self.client.post(self.url, {"current": "A", "pickup": "B", "dropoff": "C"}, format="json")
@@ -183,7 +187,7 @@ class TestRouteCalculateView:
     @patch("api.views.get_route")
     @patch("api.eld_drawer.generate_log_images")
     def test_post_empty_timeline(self, mock_draw, mock_route, mock_geo):
-        mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
+        mock_geo.side_effect = [(-74, 40, "A"), (-75, 41, "B"), (-76, 42, "C")]
         mock_route.return_value = ({"distance": 0.0}, None)
         mock_draw.return_value = []
         # if distance is 0, might not generate timeline properly
@@ -196,7 +200,7 @@ class TestRouteCalculateView:
     @patch("api.views.get_route")
     @patch("api.eld_drawer.generate_log_images")
     def test_post_fallback_legs(self, mock_draw, mock_route, mock_geo):
-        mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
+        mock_geo.side_effect = [(-74, 40, "A"), (-75, 41, "B"), (-76, 42, "C")]
         mock_route.return_value = ({"distance": 1000.0, "legs": [{"distance": 1000.0}]}, None)
         mock_draw.return_value = []
         resp = self.client.post(self.url, {"current": "A", "pickup": "B", "dropoff": "C"}, format="json")

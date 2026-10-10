@@ -13,6 +13,7 @@ function App() {
   const [responseTimeline, setResponseTimeline] = useState<any>(null);
   const [images, setImages] = useState<string[]>([]);
   const [points, setPoints] = useState<any>(null);
+  const [resolvedNames, setResolvedNames] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mapType, setMapType] = useState('Fleet Vector');
@@ -26,6 +27,7 @@ function App() {
     setResponseTimeline(null);
     setImages([]);
     setPoints(null);
+    setResolvedNames(null);
     setError('');
   };
 
@@ -44,6 +46,7 @@ function App() {
       setResponseTimeline(response.data.timeline);
       setImages(response.data.images || []);
       setPoints(response.data.points);
+      setResolvedNames(response.data.resolved_names);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to calculate route');
     } finally {
@@ -257,22 +260,7 @@ function App() {
 {/*  Simulated Interactive Map Canvas  */}
 <div className="relative w-full h-80 bg-surface-container-high overflow-hidden">
 {/*  Stylized SVG Map Graphics Overlay  */}
-<Map routeGeojson={routeData} points={points} />
-{/*  Bottom floating legend  */}
-<div className="absolute bottom-4 right-4 p-2.5 rounded-lg bg-surface/90 backdrop-blur-md shadow-md flex items-center gap-space-md">
-<div className="flex items-center gap-1.5">
-<span className="w-2.5 h-2.5 rounded-full bg-secondary"></span>
-<span className="font-code-data-sm text-code-data-sm text-on-surface font-medium">Driving Route</span>
-</div>
-<div className="flex items-center gap-1.5">
-<span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-<span className="font-code-data-sm text-code-data-sm text-on-surface font-medium">30m Break</span>
-</div>
-<div className="flex items-center gap-1.5">
-<span className="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
-<span className="font-code-data-sm text-code-data-sm text-on-surface font-medium">10h Sleeper</span>
-</div>
-</div>
+<Map routeGeojson={routeData} points={points} resolvedNames={resolvedNames} />
 </div>
 </div>
 {/*  3. Trip Timeline & Duty Segments  */}

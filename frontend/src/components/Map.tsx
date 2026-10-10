@@ -30,6 +30,11 @@ interface MapProps {
     pickup: [number, number];
     dropoff: [number, number];
   } | null;
+  resolvedNames?: {
+    current: string;
+    pickup: string;
+    dropoff: string;
+  } | null;
 }
 
 const ChangeView = ({ center, zoom }: { center: [number, number], zoom: number }) => {
@@ -38,7 +43,7 @@ const ChangeView = ({ center, zoom }: { center: [number, number], zoom: number }
   return null;
 }
 
-const Map: React.FC<MapProps> = ({ routeGeojson, points }) => {
+const Map: React.FC<MapProps> = ({ routeGeojson, points, resolvedNames }) => {
   const defaultCenter: [number, number] = [39.8283, -98.5795]; // Center of US
   const center = points ? points.current : defaultCenter;
   
@@ -63,13 +68,22 @@ const Map: React.FC<MapProps> = ({ routeGeojson, points }) => {
         {points && (
           <>
             <Marker position={points.current} icon={currentIcon}>
-              <Popup><strong>Current Location</strong></Popup>
+              <Popup>
+                <strong>Current Location</strong>
+                {resolvedNames?.current && <><br /><span className="text-sm text-gray-600">{resolvedNames.current}</span></>}
+              </Popup>
             </Marker>
             <Marker position={points.pickup} icon={pickupIcon}>
-              <Popup><strong>Pickup Location</strong></Popup>
+              <Popup>
+                <strong>Pickup Location</strong>
+                {resolvedNames?.pickup && <><br /><span className="text-sm text-gray-600">{resolvedNames.pickup}</span></>}
+              </Popup>
             </Marker>
             <Marker position={points.dropoff} icon={dropoffIcon}>
-              <Popup><strong>Dropoff Location</strong></Popup>
+              <Popup>
+                <strong>Dropoff Location</strong>
+                {resolvedNames?.dropoff && <><br /><span className="text-sm text-gray-600">{resolvedNames.dropoff}</span></>}
+              </Popup>
             </Marker>
           </>
         )}

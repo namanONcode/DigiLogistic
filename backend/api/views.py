@@ -11,10 +11,17 @@ class RouteCalculateView(APIView):
         dropoff = data.get("dropoff")
         cycle_used = data.get("cycle_used", 0)
 
-        # Geocode
-        curr_lon, curr_lat = geocode(current)
-        pick_lon, pick_lat = geocode(pickup)
-        drop_lon, drop_lat = geocode(dropoff)
+        import concurrent.futures
+
+        # Geocode in parallel
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_curr = executor.submit(geocode, current)
+            future_pick = executor.submit(geocode, pickup)
+            future_drop = executor.submit(geocode, dropoff)
+
+            curr_lon, curr_lat, curr_name = future_curr.result()
+            pick_lon, pick_lat, pick_name = future_pick.result()
+            drop_lon, drop_lat, drop_name = future_drop.result()
 
         if None in (curr_lon, pick_lon, drop_lon):
             return Response({"error": "Could not geocode one or more addresses"}, status=400)
@@ -67,6 +74,11 @@ class RouteCalculateView(APIView):
                     "pickup": [pick_lat, pick_lon],
                     "dropoff": [drop_lat, drop_lon],
                 },
+                "resolved_names": {
+                    "current": curr_name,
+                    "pickup": pick_name,
+                    "dropoff": drop_name
+                }
             }
         )
 

@@ -9,10 +9,10 @@ def geocode(address):
         response = requests.get(url, headers=headers, timeout=5)
         if response.status_code == 200 and len(response.json()) > 0:
             data = response.json()[0]
-            return float(data["lon"]), float(data["lat"])
+            return float(data["lon"]), float(data["lat"]), data.get("display_name", address)
     except Exception:
         pass
-    return None, None
+    return None, None, None
 
 @lru_cache(maxsize=128)
 def get_route(coords):
