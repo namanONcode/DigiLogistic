@@ -23,7 +23,8 @@ def get_route(coords):
         if response.status_code == 200:
             data = response.json()
             if data.get("code") == "Ok" and data.get("routes"):
-                return data["routes"][0]
-    except Exception:
-        pass
-    return None
+                return data["routes"][0], None
+            return None, f"OSRM Error: Code {data.get('code')}"
+        return None, f"OSRM HTTP {response.status_code}: {response.text[:100]}"
+    except Exception as e:
+        return None, f"Exception: {str(e)}"

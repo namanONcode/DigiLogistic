@@ -111,8 +111,9 @@ class TestServices:
         mock_resp.json.return_value = {"code": "Ok", "routes": [{"distance": 1000}]}
         mock_get.return_value = mock_resp
 
-        route = get_route(((-74, 40), (-75, 41)))
+        route, err = get_route(((-74, 40), (-75, 41)))
         assert route["distance"] == 1000
+        assert err is None
 
     @patch("api.services.requests.get")
     def test_get_route_fail(self, mock_get):
@@ -120,8 +121,9 @@ class TestServices:
         mock_resp.status_code = 400
         mock_get.return_value = mock_resp
 
-        route = get_route(((-74, 40), (-75, 41)))
+        route, err = get_route(((-74, 40), (-75, 41)))
         assert route is None
+        assert "OSRM HTTP 400" in err
 
     @patch("api.services.requests.get")
     def test_get_route_no_routes(self, mock_get):
@@ -129,8 +131,9 @@ class TestServices:
         mock_resp.status_code = 200
         mock_resp.json.return_value = {"code": "Ok", "routes": []}
         mock_get.return_value = mock_resp
-        route = get_route(((-74, 40), (-75, 41)))
+        route, err = get_route(((-74, 40), (-75, 41)))
         assert route is None
+        assert err is not None
 
 
 @pytest.mark.django_db
@@ -144,7 +147,7 @@ class TestRouteCalculateView:
     @patch("api.eld_drawer.generate_log_images")
     def test_post_success(self, mock_draw, mock_route, mock_geo):
         mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
-        mock_route.return_value = {"distance": 160934.4, "legs": [{"distance": 80467.2}, {"distance": 80467.2}]}  # 100 miles
+        mock_route.return_value = ({"distance": 160934.4, "legs": [{"distance": 80467.2}, {"distance": 80467.2}]}, None)
         mock_draw.return_value = ["image_data"]
 
         resp = self.client.post(
@@ -169,19 +172,19 @@ class TestRouteCalculateView:
     @patch("api.views.get_route")
     def test_post_route_fail(self, mock_route, mock_geo):
         mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
-        mock_route.return_value = None
+        mock_route.return_value = (None, "Custom error")
 
         resp = self.client.post(self.url, {"current": "A", "pickup": "B", "dropoff": "C"}, format="json")
 
         assert resp.status_code == 400
-        assert resp.data["error"] == "Could not calculate route"
+        assert resp.data["error"] == "Custom error"
 
     @patch("api.views.geocode")
     @patch("api.views.get_route")
     @patch("api.eld_drawer.generate_log_images")
     def test_post_empty_timeline(self, mock_draw, mock_route, mock_geo):
         mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
-        mock_route.return_value = {"distance": 0.0}
+        mock_route.return_value = ({"distance": 0.0}, None)
         mock_draw.return_value = []
         # if distance is 0, might not generate timeline properly
         # actually, with 0 distance, pickup and dropoff still take 1hr each.
@@ -194,7 +197,7 @@ class TestRouteCalculateView:
     @patch("api.eld_drawer.generate_log_images")
     def test_post_fallback_legs(self, mock_draw, mock_route, mock_geo):
         mock_geo.side_effect = [(-74, 40), (-75, 41), (-76, 42)]
-        mock_route.return_value = {"distance": 1000.0, "legs": [{"distance": 1000.0}]}
+        mock_route.return_value = ({"distance": 1000.0, "legs": [{"distance": 1000.0}]}, None)
         mock_draw.return_value = []
         resp = self.client.post(self.url, {"current": "A", "pickup": "B", "dropoff": "C"}, format="json")
         assert resp.status_code == 200

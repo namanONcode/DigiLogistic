@@ -19,9 +19,9 @@ class RouteCalculateView(APIView):
         if None in (curr_lon, pick_lon, drop_lon):
             return Response({"error": "Could not geocode one or more addresses"}, status=400)
 
-        route_data = get_route(((curr_lon, curr_lat), (pick_lon, pick_lat), (drop_lon, drop_lat)))
+        route_data, route_err = get_route(((curr_lon, curr_lat), (pick_lon, pick_lat), (drop_lon, drop_lat)))
         if not route_data:
-            return Response({"error": "Could not calculate route"}, status=400)
+            return Response({"error": route_err or "Could not calculate route"}, status=400)
 
         # Distances in meters to miles
         legs = route_data.get("legs", [])
